@@ -30,7 +30,7 @@ Everything except `wrong_citation` was written by `claude-sonnet-5` (`src/build_
 
 ## Things worth knowing before labeling
 
-- **Real failures, not seeded:** q04, q17 and q18 are answerable from the docs, but the retriever didn't surface the right section, so the assistant said it didn't have enough information. These answers are *faithful* to what was retrieved but don't help the user. q04 is the same question the rag-docs-assistant retrieval eval flagged.
+- **Real failures, not seeded:** q04, q10, q17 and q18 are answerable from the docs, but the retriever didn't surface the right section, so the assistant said it didn't have enough information (q10 only partly: it hedges on the import). These answers don't help the user, even where they're faithful to what was retrieved. q04 is the same question the rag-docs-assistant retrieval eval flagged. q10 was spotted by judge v1, not by the Phase 1 check.
 - **True but unsupported:** the fabricated detail in `q01-fabricated_detail` (auto-reload in `fastapi dev`) is true of real FastAPI, just not stated in the excerpts. A judge that relies on its own knowledge instead of the evidence will wrongly pass it.
 - **Paired records:** every flawed answer shares its question and retrieved chunks with an original, so the judge can be compared on the same evidence with and without the defect.
 
