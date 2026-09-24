@@ -1,3 +1,4 @@
 anthropic
 pydantic
 pytest
+python-dotenv

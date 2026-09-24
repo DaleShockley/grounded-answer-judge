@@ -1,0 +1,24 @@
+[
+  {"source": "q01", "flaw": "fabricated_detail"},
+  {"source": "q07", "flaw": "fabricated_detail"},
+  {"source": "q13", "flaw": "fabricated_detail"},
+  {"source": "q19", "flaw": "fabricated_detail"},
+
+  {"source": "q03", "flaw": "contradiction"},
+  {"source": "q09", "flaw": "contradiction"},
+  {"source": "q21", "flaw": "contradiction"},
+
+  {"source": "q05", "flaw": "wrong_citation"},
+  {"source": "q16", "flaw": "wrong_citation"},
+  {"source": "q26", "flaw": "wrong_citation"},
+
+  {"source": "q08", "flaw": "off_topic"},
+  {"source": "q22", "flaw": "off_topic"},
+
+  {"source": "q12", "flaw": "incomplete"},
+  {"source": "q23", "flaw": "incomplete"},
+
+  {"source": "q27", "flaw": "unanswerable_hallucination"},
+  {"source": "q28", "flaw": "unanswerable_hallucination"},
+  {"source": "q30", "flaw": "unanswerable_hallucination"}
+]
