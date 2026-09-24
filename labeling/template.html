@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Answer Labeling</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --border: #e2e1dc;
+    --accent: #3b5bdb; --pass: #2b8a3e; --pass-bg: #e6f4ea; --fail: #c92a2a; --fail-bg: #fdecec;
+    --na: #6b6b66; --na-bg: #efeeea; --code-bg: #f1f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --panel: #1f1f1d; --text: #ecebe6; --muted: #9c9b95; --border: #33332f;
+      --accent: #7b93f0; --pass: #69c27d; --pass-bg: #1d3324; --fail: #f07b7b; --fail-bg: #3a1f1f;
+      --na: #9c9b95; --na-bg: #2a2a27; --code-bg: #262624;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--border);
+           padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; }
+  .progress { flex: 1; min-width: 140px; height: 8px; background: var(--na-bg); border-radius: 4px; overflow: hidden; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text);
+           padding: 6px 12px; border-radius: 6px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  main { max-width: 1400px; margin: 0 auto; padding: 16px; display: grid; gap: 16px;
+         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 6px; }
+  .question { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .answer, .excerpt pre { white-space: pre-wrap; word-wrap: break-word; font: 14px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+            background: var(--code-bg); border-radius: 8px; padding: 12px; margin: 0; }
+  .excerpts { max-height: 70vh; overflow-y: auto; display: grid; gap: 10px; }
+  .excerpt .doc { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .excerpt pre { font-size: 13px; }
+  .criteria { display: grid; gap: 12px; margin-top: 16px; }
+  .criterion { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .criterion .name { font-weight: 600; }
+  .criterion .hint { color: var(--muted); font-size: 13px; }
+  .choices { display: flex; gap: 6px; }
+  .choices button { min-width: 64px; }
+  .choices button.sel-pass { background: var(--pass-bg); color: var(--pass); border-color: var(--pass); font-weight: 600; }
+  .choices button.sel-fail { background: var(--fail-bg); color: var(--fail); border-color: var(--fail); font-weight: 600; }
+  .choices button.sel-na { background: var(--na-bg); color: var(--na); border-color: var(--na); font-weight: 600; }
+  textarea { width: 100%; font: inherit; padding: 8px; border-radius: 6px; border: 1px solid var(--border);
+             background: var(--bg); color: var(--text); resize: vertical; min-height: 56px; }
+  .nav { display: flex; gap: 8px; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; }
+  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+  .dot { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border); font-size: 10px;
+         display: grid; place-items: center; cursor: pointer; color: var(--muted); background: var(--panel); padding: 0; min-width: 0; }
+  .dot.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .dot.current { outline: 2px solid var(--text); outline-offset: 1px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .keys { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; }
+  .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg);
+           padding: 8px 14px; border-radius: 6px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Answer Labeling</h1>
+  <div class="progress"><div id="bar"></div></div>
+  <span class="count" id="count"></span>
+  <button id="export" class="primary">Export labels</button>
+  <button id="import">Import…</button>
+  <input type="file" id="importFile" accept=".jsonl,.json" hidden>
+</header>
+
+<main>
+  <section class="card">
+    <p class="label" id="position"></p>
+    <p class="question" id="question"></p>
+    <p class="meta" id="expected"></p>
+
+    <p class="label" style="margin-top:16px">Answer</p>
+    <pre class="answer" id="answer"></pre>
+
+    <div class="criteria" id="criteria"></div>
+
+    <p class="label" style="margin-top:16px">Reason (one line)</p>
+    <textarea id="note" placeholder="Why did you grade it this way?"></textarea>
+
+    <div class="nav">
+      <button id="prev">← Previous</button>
+      <button id="nextOpen">Next unlabeled</button>
+      <button id="next" class="primary">Next →</button>
+    </div>
+    <div class="dots" id="dots"></div>
+    <p class="keys">
+      Shortcuts: <kbd>1</kbd>/<kbd>2</kbd> faithful pass/fail · <kbd>3</kbd>/<kbd>4</kbd> relevant pass/fail ·
+      <kbd>5</kbd>/<kbd>6</kbd>/<kbd>7</kbd> cited pass/fail/n.a. · <kbd>←</kbd>/<kbd>→</kbd> move (outside the text box)
+    </p>
+    <details>
+      <summary>Rubric reminder</summary>
+      <ul>
+        <li><b>Faithful:</b> every claim in the answer is supported by the retrieved excerpts (not by what you know about FastAPI).</li>
+        <li><b>Relevant:</b> it actually answers the question that was asked.</li>
+        <li><b>Cited correctly:</b> the cited source is one that contains the answer. Use n.a. when the answer cites nothing because it (correctly or not) says it can't answer.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card">
+    <p class="label">Retrieved excerpts (what the answer was grounded on)</p>
+    <div class="excerpts" id="excerpts"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const ITEMS = /*__DATA__*/[];
+const DATASET = "/*__DATASET__*/";
+const STORAGE_KEY = "gaj-labels-" + DATASET;
+const CRITERIA = [
+  { key: "faithful", name: "Faithful", hint: "Supported by the excerpts?", choices: ["pass", "fail"], keys: ["1", "2"] },
+  { key: "relevant", name: "Relevant", hint: "Answers the question asked?", choices: ["pass", "fail"], keys: ["3", "4"] },
+  { key: "cited_correctly", name: "Cited correctly", hint: "Cited doc holds the answer?", choices: ["pass", "fail", "na"], keys: ["5", "6", "7"] },
+];
+const CHOICE_TEXT = { pass: "Pass", fail: "Fail", na: "n.a." };
+
+let labels = load();
+let current = firstUnlabeled() ?? 0;
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(labels)); } catch { /* storage unavailable: export often */ }
+}
+function isDone(id) {
+  const l = labels[id];
+  return !!l && CRITERIA.every(c => l[c.key]);
+}
+function firstUnlabeled(from = 0) {
+  for (let k = 0; k < ITEMS.length; k++) {
+    const i = (from + k) % ITEMS.length;
+    if (!isDone(ITEMS[i].id)) return i;
+  }
+  return null;
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function setChoice(criterion, value) {
+  const id = ITEMS[current].id;
+  labels[id] = { ...(labels[id] || {}), [criterion]: value, labeled_at: new Date().toISOString() };
+  save(); render();
+}
+
+function render() {
+  const item = ITEMS[current];
+  const l = labels[item.id] || {};
+  document.getElementById("position").textContent = `Answer ${current + 1} of ${ITEMS.length}`;
+  document.getElementById("question").textContent = item.question;
+  document.getElementById("expected").textContent = item.expected_docs.length
+    ? `Docs that hold the answer: ${item.expected_docs.join(", ")}`
+    : "The docs don't answer this question.";
+  document.getElementById("answer").textContent = item.answer;
+
+  const excerpts = document.getElementById("excerpts");
+  excerpts.replaceChildren(...item.retrieved.map((r, i) => {
+    const div = document.createElement("div"); div.className = "excerpt";
+    const doc = document.createElement("div"); doc.className = "doc"; doc.textContent = `${i + 1}. ${r.doc}`;
+    const pre = document.createElement("pre"); pre.textContent = r.text;
+    div.append(doc, pre); return div;
+  }));
+
+  const criteria = document.getElementById("criteria");
+  criteria.replaceChildren(...CRITERIA.map(c => {
+    const row = document.createElement("div"); row.className = "criterion";
+    const text = document.createElement("div");
+    text.innerHTML = `<div class="name"></div><div class="hint"></div>`;
+    text.querySelector(".name").textContent = c.name;
+    text.querySelector(".hint").textContent = c.hint;
+    const choices = document.createElement("div"); choices.className = "choices";
+    c.choices.forEach(v => {
+      const b = document.createElement("button");
+      b.textContent = CHOICE_TEXT[v];
+      if (l[c.key] === v) b.classList.add("sel-" + v);
+      b.onclick = () => setChoice(c.key, v);
+      choices.append(b);
+    });
+    row.append(text, choices); return row;
+  }));
+
+  const note = document.getElementById("note");
+  if (document.activeElement !== note) note.value = l.note || "";
+
+  const done = ITEMS.filter(it => isDone(it.id)).length;
+  document.getElementById("count").textContent = `${done} / ${ITEMS.length} labeled`;
+  document.getElementById("bar").style.width = `${(100 * done) / ITEMS.length}%`;
+
+  document.getElementById("dots").replaceChildren(...ITEMS.map((it, i) => {
+    const d = document.createElement("button");
+    d.className = "dot" + (isDone(it.id) ? " done" : "") + (i === current ? " current" : "");
+    d.textContent = i + 1; d.title = `Answer ${i + 1}`;
+    d.onclick = () => go(i);
+    return d;
+  }));
+}
+
+function go(i) {
+  current = (i + ITEMS.length) % ITEMS.length;
+  document.getElementById("note").value = (labels[ITEMS[current].id] || {}).note || "";
+  render(); window.scrollTo({ top: 0 });
+}
+
+document.getElementById("note").addEventListener("input", e => {
+  const id = ITEMS[current].id;
+  labels[id] = { ...(labels[id] || {}), note: e.target.value };
+  save();
+});
+document.getElementById("prev").onclick = () => go(current - 1);
+document.getElementById("next").onclick = () => go(current + 1);
+document.getElementById("nextOpen").onclick = () => {
+  const i = firstUnlabeled(current + 1);
+  if (i === null) toast("Everything is labeled. Export when ready."); else go(i);
+};
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowLeft") return go(current - 1);
+  if (e.key === "ArrowRight") return go(current + 1);
+  for (const c of CRITERIA) {
+    const idx = c.keys.indexOf(e.key);
+    if (idx !== -1) return setChoice(c.key, c.choices[idx]);
+  }
+});
+
+document.getElementById("export").onclick = () => {
+  const done = ITEMS.filter(it => isDone(it.id));
+  if (done.length < ITEMS.length &&
+      !confirm(`${ITEMS.length - done.length} answer(s) aren't fully labeled yet. Export the ${done.length} finished ones anyway?`)) return;
+  const lines = done.map(it => {
+    const l = labels[it.id];
+    return JSON.stringify({ id: it.id, faithful: l.faithful, relevant: l.relevant,
+      cited_correctly: l.cited_correctly, note: (l.note || "").trim(), labeled_at: l.labeled_at });
+  });
+  const blob = new Blob([lines.join("\n") + "\n"], { type: "application/jsonl" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "human_labels.jsonl"; a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Exported ${done.length} labels`);
+};
+
+document.getElementById("import").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const known = new Set(ITEMS.map(it => it.id));
+    let n = 0;
+    for (const line of (await file.text()).split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      const { id, ...rest } = JSON.parse(line);
+      if (known.has(id)) { labels[id] = rest; n++; }
+    }
+    save(); render(); toast(`Imported ${n} labels`);
+  } catch (err) { toast("Couldn't read that file: " + err.message); }
+  e.target.value = "";
+};
+
+render();
+</script>
+</body>
+</html>
