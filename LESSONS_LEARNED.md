@@ -2,7 +2,7 @@
 
 A running log for this project and the two it builds on ([rag-docs-assistant](https://github.com/DaleShockley/rag-docs-assistant) and [sprint-risk-agent](https://github.com/DaleShockley/sprint-risk-agent)). Every claim here is backed by a number from a real run. Updated after each phase.
 
-**Status:** Phases 0–4 complete: answer set, human labels, judge v1, and judge v2 (rubric-based) compared across two models, three runs each, plus bias probes. Next: Phase 5, comparing models as the *answer generator*.
+**Status:** Phases 0–5 complete: answer set, human labels, judge v1 and v2, and four models compared as the *answer generator*. Next: Phase 6, a quality gate in CI.
 
 ---
 
@@ -76,7 +76,7 @@ In the review, **46 of the 48 disputed grades were settled in the judge's favor*
 | Relevant | 72% (κ 0.17) | 98% (κ 0.90) |
 | Cited correctly | 57% (κ 0.14) | 89% (κ 0.80) |
 
-**Read the right-hand column with care.** The reviewed labels were made with the judge's answers on screen, and most disputes were settled its way, so this agreement is partly circular (lesson 19). The remaining 6 disagreements are all citation or "not covered" cases where judge v1's prompt predates the rubric. Judge v2 will be scored on cases whose right answer doesn't depend on any judge: the 17 seeded flaws and the 9 rubric cases.
+**Read the right-hand column with care.** The reviewed labels were made with the judge's answers on screen, and most disputes were settled its way, so this agreement is partly circular (lesson 25). The remaining 6 disagreements are all citation or "not covered" cases where judge v1's prompt predates the rubric. Judge v2 will be scored on cases whose right answer doesn't depend on any judge: the 17 seeded flaws and the 9 rubric cases.
 
 ### Judge v2 (Phase 4): prompt built on `RUBRIC.md`, 3 runs per model
 
@@ -96,6 +96,19 @@ Full tables: [`results/phase4_report.md`](results/phase4_report.md), [`results/b
 | **Confident:** "This is explicitly documented…" added to a fabricated/contradicted answer. Should still fail faithful | 7/7 | 7/7 |
 
 Agreement with the reviewed labels, faithful / relevant / cited: v1 100% / 98% / 89%; v2 Sonnet 99% / 94% / 85%; v2 Haiku 89% / 95% / 82%.
+
+### Answer generators (Phase 5): same questions, same retrieved excerpts
+
+Full tables: [`results/phase5_report.md`](results/phase5_report.md). Graded by judge v2 · `claude-sonnet-5`.
+
+| Generator | Fully correct | Answered usefully | Declined (answerable) | Cost / 1k answers | Median latency | Avg output tokens |
+|---|---|---|---|---|---|---|
+| `claude-haiku-4-5` | 30/30 | 22/26 | q04, q10, q17, q18 | $1.18 | 1.6 s | 111 |
+| `claude-sonnet-4-5` (current default) | 29/30 | 22/26 | q04, q17, q18 | $3.63 | 3.0 s | 118 |
+| `claude-sonnet-5` | 29/30 | 22/26 | q04, q17, q18 | $2.72 | 1.8 s | 111 |
+| `claude-opus-5-5` | 30/30 | 23/26 | q04, q17, q18 | $8.47 | 3.8 s | 262 |
+
+All four correctly declined the 4 unanswerable questions. Second opinion (judge v2 · Haiku): 28, 29, 29, 30 of 30. Phase 5 cost $1.78 ($0.48 generating, $1.30 grading).
 
 ### Sprint-risk-agent eval (same 8 labeled issues, date pinned to 2026-09-08)
 
@@ -161,40 +174,60 @@ Haiku 4.5 caught all 17 seeded flaws at 40% of Sonnet 5's cost. But it failed of
 Adding a verbatim quote left 19 of 20 fully-passing answers passing (the one change was the judge re-examining a claim already in the original answer, not the padding). Adding "This is explicitly documented, so you can rely on it" to 7 fabricated or contradicted answers never flipped *faithful* to pass, for either model. Lesson 4's length signal exists in the data, but this judge doesn't appear to use it.
 
 **17. Agreement that drops when the judge changes shows the labels were anchored.**
-v2 follows the rubric better than v1 on every anchor, yet its agreement with the reviewed labels is *lower* (cited correctly 89% → 85%). That's the automation bias from lesson 19 showing up in the numbers: the labels partly encode v1. Anchors with judge-independent answers are the better yardstick.
+v2 follows the rubric better than v1 on every anchor, yet its agreement with the reviewed labels is *lower* (cited correctly 89% → 85%). That's the automation bias from lesson 25 showing up in the numbers: the labels partly encode v1. Anchors with judge-independent answers are the better yardstick.
+
+### Choosing a model
+
+**18. Retrieval sets the ceiling; the generator can't raise it.**
+All four models declined the same three answerable questions (q04, q17, q18), because the right section was never retrieved. A model at 7× the price answers no more of them. The fix for those questions is in chunking and retrieval (lesson 1), not in the model.
+
+**19. On an easy eval, every model looks the same, and that's a finding about the eval.**
+Every generator scored 29–30/30, a spread smaller than the judge's own run-to-run noise. The set can't tell these models apart: its answers come straight from one or two excerpts. Separating them would take harder questions (combining sections, reading code, precise edge cases), which is the next dataset to build.
+
+**20. When quality ties, cost and speed decide.**
+Haiku 4.5 matched the others at $1.18 per 1,000 answers and 1.6 s. Opus 5.5 cost 7× more and took over twice as long, mostly by writing 2.4× longer answers. Sonnet 5 matched Sonnet 4.5, the current default, at 25% lower cost and 40% lower latency, so the default is worth changing.
+
+**21. Where models do differ, it's in the rubric's gray zones.**
+The one real split was q10 (the `BaseModel` import): Haiku declined, while the Sonnets and Opus inferred the answer from context. That's the same inference-vs-hedging gap found in Phase 4 (open rubric gap 1): the models disagree exactly where the rules are unclear.
+
+**22. Check any headline that looks too clean.**
+The first Phase 5 report said Haiku declined 0 answerable questions. The metric counted an answer as declined only if it cited nothing, but most declining answers still list docs. Reading the four hardest answers from each model exposed it: every model declined at least 3. The grader's n.a. verdict is now the measure.
+
+**23. Look for a judge favoring its own model's answers.**
+Sonnet 5 judging Sonnet 5's answers could inflate them, so a Haiku judge graded everything too. It rated Haiku's own answers *lowest* (28/30) and agreed within noise elsewhere, so there's no sign of self-preference at this scale.
 
 ### Human labeling
 
-**18. Human labels aren't automatically ground truth.**
+**24. Human labels aren't automatically ground truth.**
 The first blind pass caught 6 of 17 planted flaws. The judge caught all 17. Every wrong citation and every added fake detail got through, including an answer that says setting `None` makes a parameter *required* (the docs say the opposite). "The judge agrees with a human X% of the time" means nothing until the human labels have been checked too.
 
-**19. Showing reviewers the AI's answer anchors them (automation bias).**
+**25. Showing reviewers the AI's answer anchors them (automation bias).**
 With the judge's grade and reasoning on screen, 46 of 48 disputes were settled its way, and 3 of the 4 rubric violations found afterwards copied the judge exactly, even though the judge's prompt predates the rubric. Agreement jumped from 57–72% to 89–100%, but much of that jump is the judge grading itself. *Next time:* show the two grades as "Grade A / Grade B" without saying which came from the judge, require a reason before moving on, and review a sample of agreed cases too.
 
-**20. Separate criteria get collapsed into one gut call.**
+**26. Separate criteria get collapsed into one gut call.**
 On the first pass, 44 of 47 answers got the same grade on all three criteria, so it was really one "is this answer good?" call. Independent criteria take a written rubric and worked examples (a correct answer with the wrong citation is pass / pass / **fail**). After the rubric, 21 of 47 did.
 
-**21. Write the rubric before labeling, not after.**
+**27. Write the rubric before labeling, not after.**
 The first pass was graded against one-line definitions, and the rules for edge cases ("not covered" answers, extra citations, incomplete answers) were only settled afterwards. Some of the disagreement was about grading different rules, not grading carelessly. The labels also carry almost no reasons (1 of 47), which makes each disagreement hard to settle.
 
 ### Working with model output
 
-**22. Models don't reliably follow format instructions, so parse defensively.**
+**28. Models don't reliably follow format instructions, so parse defensively.**
 - The sprint-risk agent was told "only JSON, no prose" and still wrapped its answer in a ```` ```json ```` fence or added a preamble. That crashed 3 of the first 4 live runs.
 - The RAG assistant was told to end with a "Sources:" line and sometimes wrote a sentence there ("None of the provided excerpts contain…"), which the parser took for a filename.
 
 The fixes (extract the JSON array; only accept `*.md` names) are each covered by tests built from the real outputs. For new code, structured outputs (`messages.parse` with a pydantic model, used in `build_answer_set.py`) avoid the problem altogether.
 
-**23. Mocked tests can't catch model-behavior bugs.**
+**29. Mocked tests can't catch model-behavior bugs.**
 All 14 sprint-risk tests passed while the live agent crashed on its first real response, because the mocks returned the tidy JSON the code expected. Both bugs above were found only by running the real thing. Mocked tests keep CI fast and free; they still need a periodic live run.
 
 ### Setup and tooling
 
-**24. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
+**30. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
 
-**25. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
+**31. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
 
-**26. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
+**32. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
 
 ---
 
@@ -217,6 +250,8 @@ The open questions from Phase 1 are now rules in [`RUBRIC.md`](RUBRIC.md):
 
 The **grader of record is prompt v2 on `claude-sonnet-5`**: best on every anchor, 95% consistent, $0.38 per 47 answers. Haiku 4.5 is a reasonable cheap screen for clear-cut flaws (lesson 15).
 
-## Next: Phase 5
+## Next
 
-Use the judge to compare **answer generators**: rerun the 30 questions through rag-docs-assistant with `claude-haiku-4-5`, `claude-sonnet-5` and `claude-opus-5-5`, grade every answer with judge v2 · Sonnet 5, and report pass rates per criterion next to cost and latency.
+- **Phase 6:** a CI quality gate. Unit tests on every push, plus a manually triggered live eval that fails if answer quality drops below a threshold.
+- **Phase 7:** write-up and portfolio.
+- **Later:** a harder question set (lesson 19) and better section-level retrieval (lessons 1 and 18).
