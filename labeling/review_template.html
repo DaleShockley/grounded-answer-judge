@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Review</title>
+<style>
+/*__STYLE__*/
+</style>
+</head>
+<body>
+<header>
+  <h1>Label Review</h1>
+  <div class="progress"><div id="bar"></div></div>
+  <span class="count" id="count"></span>
+  <button id="export" class="primary">Export reviewed labels</button>
+  <button id="import">Import…</button>
+  <input type="file" id="importFile" accept=".jsonl,.json" hidden>
+</header>
+
+<main>
+  <section class="card">
+    <p class="label" id="position"></p>
+    <p class="question" id="question"></p>
+
+    <p class="label" style="margin-top:16px">Answer</p>
+    <pre class="answer" id="answer"></pre>
+
+    <p class="label" style="margin-top:16px">Decide the final grade for each criterion, using RUBRIC.md</p>
+    <div class="criteria" id="criteria"></div>
+
+    <p class="label" style="margin-top:16px">Reason (one line: why the final grades are right)</p>
+    <textarea id="note" placeholder="e.g. Judge is right: 'enabled' isn't in the excerpt."></textarea>
+
+    <div class="nav">
+      <button id="prev">← Previous</button>
+      <button id="nextOpen">Next unreviewed</button>
+      <button id="next" class="primary">Next →</button>
+    </div>
+    <div class="dots" id="dots"></div>
+    <p class="keys">
+      Shortcuts: <kbd>1</kbd>/<kbd>2</kbd> faithful pass/fail · <kbd>3</kbd>/<kbd>4</kbd> relevant pass/fail ·
+      <kbd>5</kbd>/<kbd>6</kbd>/<kbd>7</kbd> cited pass/fail/n.a. · <kbd>←</kbd>/<kbd>→</kbd> move (outside the text box)
+    </p>
+  </section>
+
+  <section class="card">
+    <p class="label">Retrieved excerpts (what the answer was grounded on)</p>
+    <div class="excerpts" id="excerpts"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const ITEMS = /*__DATA__*/[];
+const UNDISPUTED = /*__UNDISPUTED__*/[];
+const DATASET = "/*__DATASET__*/";
+const STORAGE_KEY = "gaj-review-" + DATASET;
+const CRITERIA = [
+  { key: "faithful", name: "Faithful", choices: ["pass", "fail"], keys: ["1", "2"],
+    rule: "Every claim is in the excerpts. True-but-not-in-excerpts and hedged claims fail." },
+  { key: "relevant", name: "Relevant", choices: ["pass", "fail"], keys: ["3", "4"],
+    rule: "Answers what was asked. Incomplete or off-topic fails. \"Not covered\" passes only if the excerpts really lack it." },
+  { key: "cited_correctly", name: "Cited correctly", choices: ["pass", "fail", "na"], keys: ["5", "6", "7"],
+    rule: "Doc holding the main answer is cited. n.a. if nothing is cited or the answer declines." },
+];
+const CHOICE_TEXT = { pass: "Pass", fail: "Fail", na: "n.a." };
+
+let decisions = load();
+let current = firstOpen() ?? 0;
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions)); } catch { /* storage unavailable: export often */ }
+}
+// Criteria both graders agreed on start out as that grade; disputed ones start empty.
+function finalFor(item) {
+  const d = decisions[item.id] || {};
+  const out = {};
+  for (const c of CRITERIA) {
+    out[c.key] = d[c.key] ?? (item.disputed.includes(c.key) ? undefined : item.first_pass[c.key]);
+  }
+  return out;
+}
+function isDone(item) {
+  const f = finalFor(item);
+  return CRITERIA.every(c => f[c.key]);
+}
+function firstOpen(from = 0) {
+  for (let k = 0; k < ITEMS.length; k++) {
+    const i = (from + k) % ITEMS.length;
+    if (!isDone(ITEMS[i])) return i;
+  }
+  return null;
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+function tag(value) {
+  const s = document.createElement("span");
+  s.className = "tag " + value; s.textContent = CHOICE_TEXT[value] || value;
+  return s;
+}
+
+function setChoice(criterion, value) {
+  const id = ITEMS[current].id;
+  decisions[id] = { ...(decisions[id] || {}), [criterion]: value, reviewed_at: new Date().toISOString() };
+  save(); render();
+}
+
+function render() {
+  const item = ITEMS[current];
+  const final = finalFor(item);
+  document.getElementById("position").textContent =
+    `Answer ${current + 1} of ${ITEMS.length} · ${item.disputed.length} disputed criteri${item.disputed.length === 1 ? "on" : "a"}`;
+  document.getElementById("question").textContent = item.question;
+  document.getElementById("answer").textContent = item.answer;
+
+  document.getElementById("excerpts").replaceChildren(...item.retrieved.map((r, i) => {
+    const div = document.createElement("div"); div.className = "excerpt";
+    const doc = document.createElement("div"); doc.className = "doc"; doc.textContent = `${i + 1}. ${r.doc}`;
+    const pre = document.createElement("pre"); pre.textContent = r.text;
+    div.append(doc, pre); return div;
+  }));
+
+  document.getElementById("criteria").replaceChildren(...CRITERIA.map(c => {
+    const disputed = item.disputed.includes(c.key);
+    const row = document.createElement("div");
+    row.className = "criterion " + (disputed ? "disputed" : "agreed");
+
+    const text = document.createElement("div");
+    const name = document.createElement("div"); name.className = "name"; name.textContent = c.name;
+    const rule = document.createElement("div"); rule.className = "rule"; rule.textContent = c.rule;
+    const compare = document.createElement("div"); compare.className = "compare";
+    if (disputed) {
+      const you = document.createElement("div");
+      you.append(Object.assign(document.createElement("span"), { className: "who", textContent: "You:" }), tag(item.first_pass[c.key]));
+      const judge = document.createElement("div");
+      judge.append(Object.assign(document.createElement("span"), { className: "who", textContent: "Judge:" }), tag(item.judge[c.key]));
+      const reason = document.createElement("div"); reason.className = "judge-reason";
+      reason.textContent = "Judge's reasoning: " + item.judge.reasoning[c.key];
+      compare.append(you, judge, reason);
+    } else {
+      const both = document.createElement("div");
+      both.append(Object.assign(document.createElement("span"), { className: "who", textContent: "Both:" }), tag(item.first_pass[c.key]));
+      compare.append(both);
+    }
+    text.append(name, rule, compare);
+
+    const choices = document.createElement("div"); choices.className = "choices";
+    c.choices.forEach(v => {
+      const b = document.createElement("button");
+      b.textContent = CHOICE_TEXT[v];
+      if (final[c.key] === v) b.classList.add("sel-" + v);
+      b.onclick = () => setChoice(c.key, v);
+      choices.append(b);
+    });
+    row.append(text, choices); return row;
+  }));
+
+  const note = document.getElementById("note");
+  if (document.activeElement !== note) note.value = (decisions[item.id] || {}).note || "";
+
+  const done = ITEMS.filter(isDone).length;
+  document.getElementById("count").textContent = `${done} / ${ITEMS.length} reviewed`;
+  document.getElementById("bar").style.width = `${(100 * done) / ITEMS.length}%`;
+  document.getElementById("dots").replaceChildren(...ITEMS.map((it, i) => {
+    const d = document.createElement("button");
+    d.className = "dot" + (isDone(it) ? " done" : "") + (i === current ? " current" : "");
+    d.textContent = i + 1; d.title = `Answer ${i + 1}`;
+    d.onclick = () => go(i);
+    return d;
+  }));
+}
+
+function go(i) {
+  current = (i + ITEMS.length) % ITEMS.length;
+  document.getElementById("note").value = (decisions[ITEMS[current].id] || {}).note || "";
+  render(); window.scrollTo({ top: 0 });
+}
+
+document.getElementById("note").addEventListener("input", e => {
+  const id = ITEMS[current].id;
+  decisions[id] = { ...(decisions[id] || {}), note: e.target.value };
+  save();
+});
+document.getElementById("prev").onclick = () => go(current - 1);
+document.getElementById("next").onclick = () => go(current + 1);
+document.getElementById("nextOpen").onclick = () => {
+  const i = firstOpen(current + 1);
+  if (i === null) toast("Everything is reviewed. Export when ready."); else go(i);
+};
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowLeft") return go(current - 1);
+  if (e.key === "ArrowRight") return go(current + 1);
+  for (const c of CRITERIA) {
+    const idx = c.keys.indexOf(e.key);
+    if (idx !== -1) return setChoice(c.key, c.choices[idx]);
+  }
+});
+
+// Exports every answer: reviewed ones with their final grades, the rest carried over from the first pass.
+document.getElementById("export").onclick = () => {
+  const open = ITEMS.filter(it => !isDone(it)).length;
+  if (open && !confirm(`${open} answer(s) aren't reviewed yet. They'll be left out. Export anyway?`)) return;
+  const reviewed = ITEMS.filter(isDone).map(it => {
+    const f = finalFor(it), d = decisions[it.id] || {};
+    return { id: it.id, faithful: f.faithful, relevant: f.relevant, cited_correctly: f.cited_correctly,
+             note: (d.note || "").trim(), reviewed: true, reviewed_at: d.reviewed_at || null };
+  });
+  const carried = UNDISPUTED.map(r => ({ ...r, reviewed: false }));
+  const lines = [...reviewed, ...carried].map(r => JSON.stringify(r));
+  const blob = new Blob([lines.join("\n") + "\n"], { type: "application/jsonl" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "reviewed_labels.jsonl"; a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Exported ${reviewed.length} reviewed + ${carried.length} carried over`);
+};
+
+document.getElementById("import").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const known = new Set(ITEMS.map(it => it.id));
+    let n = 0;
+    for (const line of (await file.text()).split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      const row = JSON.parse(line);
+      if (row.reviewed && known.has(row.id)) {
+        decisions[row.id] = { faithful: row.faithful, relevant: row.relevant, cited_correctly: row.cited_correctly,
+                              note: row.note, reviewed_at: row.reviewed_at };
+        n++;
+      }
+    }
+    save(); render(); toast(`Imported ${n} reviews`);
+  } catch (err) { toast("Couldn't read that file: " + err.message); }
+  e.target.value = "";
+};
+
+render();
+</script>
+</body>
+</html>

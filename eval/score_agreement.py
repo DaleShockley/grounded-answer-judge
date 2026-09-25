@@ -83,7 +83,9 @@ def _fmt_kappa(k: float | None) -> str:
     return "n/a" if k is None else f"{k:.2f}"
 
 
-def render_report(run_file: Path, judge_rows: list[dict], agree: dict | None, recall: dict) -> str:
+def render_report(
+    run_file: Path, judge_rows: list[dict], agree: dict | None, recall: dict, labels_name: str = ""
+) -> str:
     cost = sum(r["cost_usd"] for r in judge_rows)
     latency = sorted(r["latency_s"] for r in judge_rows)
     first = judge_rows[0]
@@ -95,7 +97,7 @@ def render_report(run_file: Path, judge_rows: list[dict], agree: dict | None, re
         "",
     ]
 
-    lines += ["## Agreement with human labels", ""]
+    lines += [f"## Agreement with human labels{f' (`{labels_name}`)' if labels_name else ''}", ""]
     if agree is None:
         lines += ["_No `data/human_labels.jsonl` yet._", ""]
     else:
@@ -129,21 +131,25 @@ def render_report(run_file: Path, judge_rows: list[dict], agree: dict | None, re
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("run_file", type=Path)
+    parser.add_argument("--labels", type=Path, default=HUMAN_LABELS,
+                        help="human labels to score against (e.g. data/reviewed_labels.jsonl)")
     args = parser.parse_args()
 
     judge_rows = read_jsonl(args.run_file)
     if not judge_rows:
         raise SystemExit(f"No verdicts in {args.run_file}")
     judge = {r["id"]: r for r in judge_rows}
-    human = {r["id"]: r for r in read_jsonl(HUMAN_LABELS)}
+    human = {r["id"]: r for r in read_jsonl(args.labels)}
 
     report = render_report(
         args.run_file,
         judge_rows,
         agreement(human, judge) if human else None,
         seeded_flaw_recall(read_jsonl(ANSWERS), judge),
+        labels_name=args.labels.name,
     )
-    out = args.run_file.with_name(args.run_file.stem.replace("judge_", "report_") + ".md")
+    suffix = "" if args.labels == HUMAN_LABELS else f"_vs_{args.labels.stem}"
+    out = args.run_file.with_name(args.run_file.stem.replace("judge_", "report_") + suffix + ".md")
     out.write_text(report, encoding="utf-8")
     print(report)
     print(f"Saved {out}")

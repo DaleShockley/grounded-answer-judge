@@ -5,66 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Answer Labeling</title>
 <style>
-  :root {
-    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --border: #e2e1dc;
-    --accent: #3b5bdb; --pass: #2b8a3e; --pass-bg: #e6f4ea; --fail: #c92a2a; --fail-bg: #fdecec;
-    --na: #6b6b66; --na-bg: #efeeea; --code-bg: #f1f0ec;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #161615; --panel: #1f1f1d; --text: #ecebe6; --muted: #9c9b95; --border: #33332f;
-      --accent: #7b93f0; --pass: #69c27d; --pass-bg: #1d3324; --fail: #f07b7b; --fail-bg: #3a1f1f;
-      --na: #9c9b95; --na-bg: #2a2a27; --code-bg: #262624;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { position: sticky; top: 0; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--border);
-           padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  header h1 { font-size: 16px; margin: 0; }
-  .progress { flex: 1; min-width: 140px; height: 8px; background: var(--na-bg); border-radius: 4px; overflow: hidden; }
-  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
-  .count { color: var(--muted); font-variant-numeric: tabular-nums; }
-  button { font: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text);
-           padding: 6px 12px; border-radius: 6px; }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  main { max-width: 1400px; margin: 0 auto; padding: 16px; display: grid; gap: 16px;
-         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 6px; }
-  .question { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
-  .meta { color: var(--muted); font-size: 13px; }
-  .answer, .excerpt pre { white-space: pre-wrap; word-wrap: break-word; font: 14px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
-            background: var(--code-bg); border-radius: 8px; padding: 12px; margin: 0; }
-  .excerpts { max-height: 70vh; overflow-y: auto; display: grid; gap: 10px; }
-  .excerpt .doc { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-  .excerpt pre { font-size: 13px; }
-  .criteria { display: grid; gap: 12px; margin-top: 16px; }
-  .criterion { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
-  .criterion .name { font-weight: 600; }
-  .criterion .hint { color: var(--muted); font-size: 13px; }
-  .choices { display: flex; gap: 6px; }
-  .choices button { min-width: 64px; }
-  .choices button.sel-pass { background: var(--pass-bg); color: var(--pass); border-color: var(--pass); font-weight: 600; }
-  .choices button.sel-fail { background: var(--fail-bg); color: var(--fail); border-color: var(--fail); font-weight: 600; }
-  .choices button.sel-na { background: var(--na-bg); color: var(--na); border-color: var(--na); font-weight: 600; }
-  textarea { width: 100%; font: inherit; padding: 8px; border-radius: 6px; border: 1px solid var(--border);
-             background: var(--bg); color: var(--text); resize: vertical; min-height: 56px; }
-  .nav { display: flex; gap: 8px; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; }
-  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
-  .dot { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border); font-size: 10px;
-         display: grid; place-items: center; cursor: pointer; color: var(--muted); background: var(--panel); padding: 0; min-width: 0; }
-  .dot.done { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .dot.current { outline: 2px solid var(--text); outline-offset: 1px; }
-  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
-  .keys { color: var(--muted); font-size: 12px; margin-top: 8px; }
-  kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; }
-  .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg);
-           padding: 8px 14px; border-radius: 6px; opacity: 0; transition: opacity .2s; pointer-events: none; }
-  .toast.show { opacity: 1; }
+/*__STYLE__*/
 </style>
 </head>
 <body>

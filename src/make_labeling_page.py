@@ -21,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 ANSWERS = ROOT / "data" / "answers.jsonl"
 TEMPLATE = ROOT / "labeling" / "template.html"
+STYLE = ROOT / "labeling" / "style.css"
 OUTPUT = ROOT / "labeling" / "label.html"
 
 # Only what a human grader needs. Everything that reveals the seeded flaw stays out.
@@ -43,14 +44,19 @@ def _qid(item: dict) -> str:
     return item["id"].split("-", 1)[0]
 
 
-def render_page(items: list[dict], template: str) -> str:
+def render_page(items: list[dict], template: str, style: str = "") -> str:
     data = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")  # can't close the <script> early
     dataset = hashlib.sha256(data.encode("utf-8")).hexdigest()[:12]  # new answer set -> fresh saved progress
-    return template.replace("/*__DATA__*/[]", data).replace("/*__DATASET__*/", dataset)
+    return (
+        template.replace("/*__STYLE__*/", style)
+        .replace("/*__DATA__*/[]", data)
+        .replace("/*__DATASET__*/", dataset)
+    )
 
 
 if __name__ == "__main__":
     records = [json.loads(line) for line in ANSWERS.read_text(encoding="utf-8").splitlines() if line.strip()]
     items = blind_items(records)
-    OUTPUT.write_text(render_page(items, TEMPLATE.read_text(encoding="utf-8")), encoding="utf-8")
+    page = render_page(items, TEMPLATE.read_text(encoding="utf-8"), STYLE.read_text(encoding="utf-8"))
+    OUTPUT.write_text(page, encoding="utf-8")
     print(f"Wrote {OUTPUT} ({len(items)} answers). Open it in your browser to start labeling.")
