@@ -1,0 +1,14 @@
+{
+  "_about": "Rubric anchor cases: answers where RUBRIC.md fixes the right grade for one criterion, independent of any judge or reviewer. Seeded-flaw anchors are derived from data/answers.jsonl in code. These 9 were identified after seeing judge v1's output and informed prompt v2, so treat them as a development check, not a held-out test.",
+  "cases": [
+    {"id": "q04-original", "criterion": "relevant", "expected": "pass", "rule": "Honest 'not covered' and the excerpts really lack it"},
+    {"id": "q17-original", "criterion": "relevant", "expected": "pass", "rule": "Honest 'not covered' and the excerpts really lack it"},
+    {"id": "q18-original", "criterion": "relevant", "expected": "pass", "rule": "Honest 'not covered' and the excerpts really lack it"},
+    {"id": "q10-original", "criterion": "faithful", "expected": "fail", "rule": "Hedged unsupported claim"},
+    {"id": "q04-original", "criterion": "cited_correctly", "expected": "na", "rule": "Answer declines"},
+    {"id": "q18-original", "criterion": "cited_correctly", "expected": "na", "rule": "Answer declines"},
+    {"id": "q30-original", "criterion": "cited_correctly", "expected": "na", "rule": "Answer declines, even though it names a doc"},
+    {"id": "q11-original", "criterion": "cited_correctly", "expected": "pass", "rule": "Core source rule"},
+    {"id": "q23-incomplete", "criterion": "relevant", "expected": "fail", "rule": "Incomplete fails relevant"}
+  ]
+}

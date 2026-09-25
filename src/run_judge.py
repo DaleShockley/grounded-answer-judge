@@ -66,9 +66,10 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, help="grade only the first N answers")
     parser.add_argument("--ids", help="comma-separated answer ids to grade")
     parser.add_argument("--tag", help="suffix for the results file, to keep repeated runs apart")
+    parser.add_argument("--answers", type=Path, default=ANSWERS, help="answers to grade (e.g. data/probes.jsonl)")
     args = parser.parse_args()
 
-    records = read_jsonl(ANSWERS)
+    records = read_jsonl(args.answers)
     if args.ids:
         wanted = set(args.ids.split(","))
         records = [r for r in records if r["id"] in wanted]
