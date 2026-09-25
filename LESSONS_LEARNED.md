@@ -2,7 +2,7 @@
 
 A running log for this project and the two it builds on ([rag-docs-assistant](https://github.com/DaleShockley/rag-docs-assistant) and [sprint-risk-agent](https://github.com/DaleShockley/sprint-risk-agent)). Every claim here is backed by a number from a real run. Updated after each phase.
 
-**Status:** Phases 0–5 complete: answer set, human labels, judge v1 and v2, and four models compared as the *answer generator*. Next: Phase 6, a quality gate in CI.
+**Status:** Phases 0–6 complete: answer set, human labels, judge v1 and v2, a four-model generator comparison, and a CI quality gate. Next: Phase 7, the write-up.
 
 ---
 
@@ -76,7 +76,7 @@ In the review, **46 of the 48 disputed grades were settled in the judge's favor*
 | Relevant | 72% (κ 0.17) | 98% (κ 0.90) |
 | Cited correctly | 57% (κ 0.14) | 89% (κ 0.80) |
 
-**Read the right-hand column with care.** The reviewed labels were made with the judge's answers on screen, and most disputes were settled its way, so this agreement is partly circular (lesson 25). The remaining 6 disagreements are all citation or "not covered" cases where judge v1's prompt predates the rubric. Judge v2 will be scored on cases whose right answer doesn't depend on any judge: the 17 seeded flaws and the 9 rubric cases.
+**Read the right-hand column with care.** The reviewed labels were made with the judge's answers on screen, and most disputes were settled its way, so this agreement is partly circular (lesson 28). The remaining 6 disagreements are all citation or "not covered" cases where judge v1's prompt predates the rubric. Judge v2 will be scored on cases whose right answer doesn't depend on any judge: the 17 seeded flaws and the 9 rubric cases.
 
 ### Judge v2 (Phase 4): prompt built on `RUBRIC.md`, 3 runs per model
 
@@ -109,6 +109,17 @@ Full tables: [`results/phase5_report.md`](results/phase5_report.md). Graded by j
 | `claude-opus-5-5` | 30/30 | 23/26 | q04, q17, q18 | $8.47 | 3.8 s | 262 |
 
 All four correctly declined the 4 unanswerable questions. Second opinion (judge v2 · Haiku): 28, 29, 29, 30 of 30. Phase 5 cost $1.78 ($0.48 generating, $1.30 grading).
+
+### Quality gate (Phase 6)
+
+`eval/quality_gate.py` with minimums in `eval/gate_thresholds.json`. It runs on every push against the committed results (free), and on demand against fresh API runs (`.github/workflows/live-eval.yml`, about $0.60).
+
+| Check | Minimum | Judge v2 · Sonnet 5 | Deliberately softened prompt (`judge_lenient`) |
+|---|---|---|---|
+| Judge: seeded flaws caught | 17/17 | 17/17 ✅ | 14/17 ❌ (let through q01-fabricated_detail, q12-incomplete, q23-incomplete) |
+| Judge: rubric cases right | 8/9 | 8/9 ✅ | 4/9 ❌ |
+| Answers: faithful (Sonnet 5 answers) | 28/30 | 29/30 ✅ | – |
+| Answers: fully correct (Sonnet 5 answers) | 28/30 | 29/30 ✅ | – |
 
 ### Sprint-risk-agent eval (same 8 labeled issues, date pinned to 2026-09-08)
 
@@ -174,7 +185,7 @@ Haiku 4.5 caught all 17 seeded flaws at 40% of Sonnet 5's cost. But it failed of
 Adding a verbatim quote left 19 of 20 fully-passing answers passing (the one change was the judge re-examining a claim already in the original answer, not the padding). Adding "This is explicitly documented, so you can rely on it" to 7 fabricated or contradicted answers never flipped *faithful* to pass, for either model. Lesson 4's length signal exists in the data, but this judge doesn't appear to use it.
 
 **17. Agreement that drops when the judge changes shows the labels were anchored.**
-v2 follows the rubric better than v1 on every anchor, yet its agreement with the reviewed labels is *lower* (cited correctly 89% → 85%). That's the automation bias from lesson 25 showing up in the numbers: the labels partly encode v1. Anchors with judge-independent answers are the better yardstick.
+v2 follows the rubric better than v1 on every anchor, yet its agreement with the reviewed labels is *lower* (cited correctly 89% → 85%). That's the automation bias from lesson 28 showing up in the numbers: the labels partly encode v1. Anchors with judge-independent answers are the better yardstick.
 
 ### Choosing a model
 
@@ -196,38 +207,49 @@ The first Phase 5 report said Haiku declined 0 answerable questions. The metric 
 **23. Look for a judge favoring its own model's answers.**
 Sonnet 5 judging Sonnet 5's answers could inflate them, so a Haiku judge graded everything too. It rated Haiku's own answers *lowest* (28/30) and agreed within noise elsewhere, so there's no sign of self-preference at this scale.
 
+### Quality gates
+
+**24. A degraded judge can still look good, so set the bar where the good one is.**
+The softened prompt ("be generous; general knowledge is fine") still caught 14 of 17 seeded flaws, 82%, which a loose "80% is fine" bar would accept. What it lost were the subtle cases a judge exists for: the true-but-unsupported claim and the incomplete answers. The gate's minimums sit at what the known-good judge actually scores, with room only for measured noise.
+
+**25. Gate the grader separately from the thing it grades.**
+A lenient judge makes the answers look *better*, not worse: it would push the answer checks up while quality stayed the same, or even dropped. If CI only checked "answer quality ≥ X", a broken judge would sail through and hide real regressions. The judge has to be checked against answers whose right grade is known independently: the seeded flaws and rubric cases.
+
+**26. Anchor cases are what make an automated judge check possible.**
+Without the 17 seeded flaws and 9 rubric cases, the only way to check the judge would be fresh human labels every time. With them, CI can catch a bad prompt edit in a few minutes for under a dollar. The time spent building the answer set in Phase 1 is what pays for this.
+
 ### Human labeling
 
-**24. Human labels aren't automatically ground truth.**
+**27. Human labels aren't automatically ground truth.**
 The first blind pass caught 6 of 17 planted flaws. The judge caught all 17. Every wrong citation and every added fake detail got through, including an answer that says setting `None` makes a parameter *required* (the docs say the opposite). "The judge agrees with a human X% of the time" means nothing until the human labels have been checked too.
 
-**25. Showing reviewers the AI's answer anchors them (automation bias).**
+**28. Showing reviewers the AI's answer anchors them (automation bias).**
 With the judge's grade and reasoning on screen, 46 of 48 disputes were settled its way, and 3 of the 4 rubric violations found afterwards copied the judge exactly, even though the judge's prompt predates the rubric. Agreement jumped from 57–72% to 89–100%, but much of that jump is the judge grading itself. *Next time:* show the two grades as "Grade A / Grade B" without saying which came from the judge, require a reason before moving on, and review a sample of agreed cases too.
 
-**26. Separate criteria get collapsed into one gut call.**
+**29. Separate criteria get collapsed into one gut call.**
 On the first pass, 44 of 47 answers got the same grade on all three criteria, so it was really one "is this answer good?" call. Independent criteria take a written rubric and worked examples (a correct answer with the wrong citation is pass / pass / **fail**). After the rubric, 21 of 47 did.
 
-**27. Write the rubric before labeling, not after.**
+**30. Write the rubric before labeling, not after.**
 The first pass was graded against one-line definitions, and the rules for edge cases ("not covered" answers, extra citations, incomplete answers) were only settled afterwards. Some of the disagreement was about grading different rules, not grading carelessly. The labels also carry almost no reasons (1 of 47), which makes each disagreement hard to settle.
 
 ### Working with model output
 
-**28. Models don't reliably follow format instructions, so parse defensively.**
+**31. Models don't reliably follow format instructions, so parse defensively.**
 - The sprint-risk agent was told "only JSON, no prose" and still wrapped its answer in a ```` ```json ```` fence or added a preamble. That crashed 3 of the first 4 live runs.
 - The RAG assistant was told to end with a "Sources:" line and sometimes wrote a sentence there ("None of the provided excerpts contain…"), which the parser took for a filename.
 
 The fixes (extract the JSON array; only accept `*.md` names) are each covered by tests built from the real outputs. For new code, structured outputs (`messages.parse` with a pydantic model, used in `build_answer_set.py`) avoid the problem altogether.
 
-**29. Mocked tests can't catch model-behavior bugs.**
+**32. Mocked tests can't catch model-behavior bugs.**
 All 14 sprint-risk tests passed while the live agent crashed on its first real response, because the mocks returned the tidy JSON the code expected. Both bugs above were found only by running the real thing. Mocked tests keep CI fast and free; they still need a periodic live run.
 
 ### Setup and tooling
 
-**30. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
+**33. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
 
-**31. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
+**34. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
 
-**32. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
+**35. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
 
 ---
 
@@ -252,6 +274,5 @@ The **grader of record is prompt v2 on `claude-sonnet-5`**: best on every anchor
 
 ## Next
 
-- **Phase 6:** a CI quality gate. Unit tests on every push, plus a manually triggered live eval that fails if answer quality drops below a threshold.
 - **Phase 7:** write-up and portfolio.
 - **Later:** a harder question set (lesson 19) and better section-level retrieval (lessons 1 and 18).

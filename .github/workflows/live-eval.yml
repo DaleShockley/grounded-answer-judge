@@ -1,0 +1,63 @@
+name: Live eval
+
+# Runs the judge against the real API and applies the quality gate.
+# Manual only: it costs real API credit (about $0.60 with the defaults).
+# Needs a repository secret named ANTHROPIC_API_KEY
+# (Settings -> Secrets and variables -> Actions -> New repository secret).
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Judge prompt version (file prompts/judge_<version>.txt)"
+        default: "v2"
+      model:
+        description: "Judge model"
+        default: "claude-sonnet-5"
+
+jobs:
+  live-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # Inputs go through env vars, not straight into the shell, so they can't inject commands.
+      JUDGE_PROMPT: ${{ inputs.prompt }}
+      JUDGE_MODEL: ${{ inputs.model }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check the API key secret is set
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add a repository secret named ANTHROPIC_API_KEY first."
+            exit 1
+          fi
+
+      - name: Judge the answer set (47 answers with seeded flaws)
+        run: python -m src.run_judge --prompt "$JUDGE_PROMPT" --model "$JUDGE_MODEL" --tag ci
+
+      - name: Judge the default generator's answers (30 answers)
+        run: >
+          python -m src.run_judge --prompt "$JUDGE_PROMPT" --model "$JUDGE_MODEL" --tag ci-gen
+          --answers data/generators/answers_claude-sonnet-5.jsonl
+
+      - name: Quality gate
+        run: >
+          python -m eval.quality_gate
+          --judge-run "results/judge_${JUDGE_PROMPT}_${JUDGE_MODEL}_ci.jsonl"
+          --answers-run "results/judge_${JUDGE_PROMPT}_${JUDGE_MODEL}_ci-gen.jsonl"
+
+      - name: Keep the verdicts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-eval-${{ inputs.prompt }}-${{ inputs.model }}
+          path: results/*_ci*.jsonl

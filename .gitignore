@@ -5,3 +5,4 @@ __pycache__/
 .pytest_cache/
 labeling/label.html
 labeling/review.html
+results/*_ci*.jsonl

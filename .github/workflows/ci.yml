@@ -19,3 +19,6 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+      - name: Quality gate (committed results)
+        run: python -m eval.quality_gate

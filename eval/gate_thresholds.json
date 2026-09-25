@@ -1,0 +1,11 @@
+{
+  "_about": "Minimums for eval/quality_gate.py. Set from Phase 4-5 results: judge v2 on claude-sonnet-5 caught 17/17 seeded flaws in every run and got 8-9 of 9 rubric cases; claude-sonnet-5 answers were 29/30 faithful and 29/30 fully correct. Each minimum leaves at most one answer of room for run-to-run noise (about 5% of verdicts change between identical runs).",
+  "judge": {
+    "seeded_flaws_min": 17,
+    "rubric_cases_min": 8
+  },
+  "answers": {
+    "faithful_min": 28,
+    "fully_correct_min": 28
+  }
+}

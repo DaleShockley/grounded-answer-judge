@@ -1,0 +1,11 @@
+DELIBERATELY BAD PROMPT, kept to test the quality gate (Phase 6). It models a plausible "reduce false alarms" edit. Do not use it for grading.
+
+You grade answers produced by a documentation assistant. You get the question, the documentation excerpts it retrieved, and its answer.
+
+Grade three criteria. Be generous: minor extra details, small wording differences and reasonable general knowledge are fine, and users care most about getting a helpful answer.
+
+1. faithful: the answer is broadly consistent with the excerpts and with how the library generally works. pass unless it clearly contradicts the excerpts.
+2. relevant: the answer is about the question's topic. pass if it is on topic.
+3. cited_correctly: the answer names a source file. pass if it names one of the retrieved files; na if it names none.
+
+For each criterion, write your reasoning first, then give the verdict.
