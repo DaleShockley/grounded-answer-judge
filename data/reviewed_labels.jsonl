@@ -1,47 +1,47 @@
-{"id":"q07-fabricated_detail","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:14:44.935Z"}
-{"id":"q30-unanswerable_hallucination","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:16:03.373Z"}
-{"id":"q01-fabricated_detail","faithful":"fail","relevant":"pass","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:16:28.701Z"}
-{"id":"q19-fabricated_detail","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:16:51.966Z"}
-{"id":"q21-original","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:17:28.349Z"}
-{"id":"q30-original","faithful":"pass","relevant":"pass","cited_correctly":"na","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:18:07.733Z"}
-{"id":"q28-unanswerable_hallucination","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:19:05.416Z"}
-{"id":"q17-original","faithful":"pass","relevant":"pass","cited_correctly":"na","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:19:34.462Z"}
-{"id":"q26-wrong_citation","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:19:51.816Z"}
-{"id":"q25-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:20:17.443Z"}
-{"id":"q13-fabricated_detail","faithful":"fail","relevant":"pass","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:21:20.814Z"}
-{"id":"q11-original","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:21:26.243Z"}
-{"id":"q16-wrong_citation","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:21:48.485Z"}
-{"id":"q27-original","faithful":"pass","relevant":"pass","cited_correctly":"na","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:22:12.896Z"}
-{"id":"q07-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:22:30.871Z"}
-{"id":"q23-incomplete","faithful":"pass","relevant":"fail","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:22:46.297Z"}
-{"id":"q05-wrong_citation","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:22:50.974Z"}
-{"id":"q22-off_topic","faithful":"pass","relevant":"fail","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:24:34.214Z"}
-{"id":"q27-unanswerable_hallucination","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:24:42.608Z"}
-{"id":"q29-original","faithful":"pass","relevant":"pass","cited_correctly":"na","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:25:07.308Z"}
-{"id":"q18-original","faithful":"pass","relevant":"fail","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:25:18.267Z"}
-{"id":"q28-original","faithful":"pass","relevant":"pass","cited_correctly":"na","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:25:34.871Z"}
-{"id":"q04-original","faithful":"pass","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:25:48.530Z"}
-{"id":"q21-contradiction","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:26:28.544Z"}
-{"id":"q09-contradiction","faithful":"fail","relevant":"fail","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:27:29.918Z"}
-{"id":"q10-original","faithful":"fail","relevant":"pass","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:27:41.093Z"}
-{"id":"q08-off_topic","faithful":"pass","relevant":"fail","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:28:02.947Z"}
-{"id":"q03-contradiction","faithful":"fail","relevant":"pass","cited_correctly":"fail","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:28:13.352Z"}
-{"id":"q12-incomplete","faithful":"pass","relevant":"fail","cited_correctly":"pass","note":"","reviewed":true,"reviewed_at":"2026-09-25T17:28:58.114Z"}
-{"id":"q06-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q20-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q14-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q05-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q13-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q26-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q15-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q16-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q12-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q19-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q03-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q09-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q02-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q08-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q23-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q22-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q24-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
-{"id":"q01-original","faithful":"pass","relevant":"pass","cited_correctly":"pass","note":"","reviewed":false}
+{"id": "q07-fabricated_detail", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:14:44.935Z"}
+{"id": "q30-unanswerable_hallucination", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:16:03.373Z"}
+{"id": "q01-fabricated_detail", "faithful": "fail", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:16:28.701Z"}
+{"id": "q19-fabricated_detail", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:16:51.966Z"}
+{"id": "q21-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:17:28.349Z"}
+{"id": "q30-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:18:07.733Z"}
+{"id": "q28-unanswerable_hallucination", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:19:05.416Z"}
+{"id": "q17-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:19:34.462Z"}
+{"id": "q26-wrong_citation", "faithful": "pass", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:19:51.816Z"}
+{"id": "q25-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:20:17.443Z"}
+{"id": "q13-fabricated_detail", "faithful": "fail", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:21:20.814Z"}
+{"id": "q11-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "Corrected per RUBRIC.md: core source rule: body.md holds the main answer.", "reviewed": true, "reviewed_at": "2026-09-25T17:21:26.243Z", "corrected_from": {"cited_correctly": "fail"}, "corrected_at": "2026-09-25"}
+{"id": "q16-wrong_citation", "faithful": "pass", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:21:48.485Z"}
+{"id": "q27-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:22:12.896Z"}
+{"id": "q07-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:22:30.871Z"}
+{"id": "q23-incomplete", "faithful": "pass", "relevant": "fail", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:22:46.297Z"}
+{"id": "q05-wrong_citation", "faithful": "pass", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:22:50.974Z"}
+{"id": "q22-off_topic", "faithful": "pass", "relevant": "fail", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:24:34.214Z"}
+{"id": "q27-unanswerable_hallucination", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:24:42.608Z"}
+{"id": "q29-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:25:07.308Z"}
+{"id": "q18-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "Corrected per RUBRIC.md: answer declines, so citation is n.a.; excerpts lack the answer, so an honest \"not covered\" passes relevant.", "reviewed": true, "reviewed_at": "2026-09-25T17:25:18.267Z", "corrected_from": {"cited_correctly": "pass", "relevant": "fail"}, "corrected_at": "2026-09-25"}
+{"id": "q28-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:25:34.871Z"}
+{"id": "q04-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "na", "note": "Corrected per RUBRIC.md: answer declines, so citation is n.a..", "reviewed": true, "reviewed_at": "2026-09-25T17:25:48.530Z", "corrected_from": {"cited_correctly": "fail"}, "corrected_at": "2026-09-25"}
+{"id": "q21-contradiction", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:26:28.544Z"}
+{"id": "q09-contradiction", "faithful": "fail", "relevant": "fail", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:27:29.918Z"}
+{"id": "q10-original", "faithful": "fail", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:27:41.093Z"}
+{"id": "q08-off_topic", "faithful": "pass", "relevant": "fail", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:28:02.947Z"}
+{"id": "q03-contradiction", "faithful": "fail", "relevant": "pass", "cited_correctly": "fail", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:28:13.352Z"}
+{"id": "q12-incomplete", "faithful": "pass", "relevant": "fail", "cited_correctly": "pass", "note": "", "reviewed": true, "reviewed_at": "2026-09-25T17:28:58.114Z"}
+{"id": "q06-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q20-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q14-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q05-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q13-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q26-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q15-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q16-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q12-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q19-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q03-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q09-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q02-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q08-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q23-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q22-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q24-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}
+{"id": "q01-original", "faithful": "pass", "relevant": "pass", "cited_correctly": "pass", "note": "", "reviewed": false}

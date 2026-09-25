@@ -2,7 +2,7 @@
 
 A running log for this project and the two it builds on ([rag-docs-assistant](https://github.com/DaleShockley/rag-docs-assistant) and [sprint-risk-agent](https://github.com/DaleShockley/sprint-risk-agent)). Every claim here is backed by a number from a real run. Updated after each phase.
 
-**Status:** Phases 0–1 complete. Phase 2 (human labels) in progress. Phase 3 judge v1 built and run; agreement with human labels pending.
+**Status:** Phases 0–3 complete: answer set, human labels (first pass, rubric, review), and judge v1 scored against them. Next: Phase 4, judge v2 built on `RUBRIC.md`.
 
 ---
 
@@ -49,6 +49,34 @@ A running log for this project and the two it builds on ([rag-docs-assistant](ht
 | Original answers failed on at least one criterion | 4 / 30 (q04, q10, q11, q18) |
 | Cost | $0.33 total ($0.005–0.014 per answer) |
 | Latency | median 3.2 s, max 12 s |
+
+### Human labels, in three stages
+
+| Stage | File | What happened |
+|---|---|---|
+| 1. First pass (blind) | `human_labels.jsonl` | All 47 graded before a written rubric existed |
+| 2. Review | `reviewed_labels.jsonl` | The 29 answers (48 grades) where the first pass and judge v1 disagreed, settled with both grades and the judge's reasoning visible |
+| 3. Rubric corrections | `reviewed_labels.jsonl` | 4 grades changed to follow `RUBRIC.md` (each keeps `corrected_from`) |
+
+| Measure | First pass | After review + corrections |
+|---|---|---|
+| Seeded flaws failed on the criterion they target | 6 / 17 | 17 / 17 |
+| Answers given the same grade on all three criteria | 44 / 47 | 21 / 47 |
+| One-line reasons written | 1 / 47 | 3 / 47 (the corrections) |
+
+First-pass catch rate by flaw type: `unanswerable_hallucination` 3/3, `contradiction` 1/3, `off_topic` 1/2, `incomplete` 1/2, `fabricated_detail` 0/4, `wrong_citation` 0/3.
+
+In the review, **46 of the 48 disputed grades were settled in the judge's favor**, in about 14 minutes. Checking the 9 cases where `RUBRIC.md` gives a specific answer showed 4 still broke the rubric, 3 of them by copying judge v1, whose prompt predates the rubric. Those 4 were corrected in stage 3.
+
+### Judge v1 agreement with human labels
+
+| Criterion | vs. first pass | vs. reviewed + corrected |
+|---|---|---|
+| Faithful | 68% (κ 0.19) | 100% (κ 1.00) |
+| Relevant | 72% (κ 0.17) | 98% (κ 0.90) |
+| Cited correctly | 57% (κ 0.14) | 89% (κ 0.80) |
+
+**Read the right-hand column with care.** The reviewed labels were made with the judge's answers on screen, and most disputes were settled its way, so this agreement is partly circular (lesson 14). The remaining 6 disagreements are all citation or "not covered" cases where judge v1's prompt predates the rubric. Judge v2 will be scored on cases whose right answer doesn't depend on any judge: the 17 seeded flaws and the 9 rubric cases.
 
 ### Sprint-risk-agent eval (same 8 labeled issues, date pinned to 2026-09-08)
 
@@ -99,35 +127,54 @@ Judge v1 caught 17/17 seeded flaws. That's a useful sanity check (the plumbing w
 q04, q17 and q18 are the same situation: an honest "the excerpts don't say" when the docs did. The judge passed **relevant** for q04 and q17 but failed it for q18. The prompt never says how to treat that case, so the judge decided differently each time. A human grader faces the same gap. The fix is a rubric rule, not a stronger model. This is the first input to prompt v2.
 
 **12. A stricter judge isn't necessarily a wrong judge.**
-For q11 the judge failed **cited correctly** because one sentence ("you don't have to declare them in any specific order") comes from query-params.md, which the answer didn't cite. That's stricter than a person skimming would be, but defensible. Whether it counts as a disagreement depends on the rubric, which is why the rubric gets written down.
+For q11 the judge failed **cited correctly** because one sentence ("you don't have to declare them in any specific order") comes from query-params.md, which the answer didn't cite. That's stricter than a person skimming would be, but defensible. Whether it counts as a disagreement depends on the rubric, which is why the rubric gets written down. The rubric later settled it with the core source rule: body.md holds the main answer, so q11 **passes**, and v1 was too strict here.
+
+### Human labeling
+
+**13. Human labels aren't automatically ground truth.**
+The first blind pass caught 6 of 17 planted flaws. The judge caught all 17. Every wrong citation and every added fake detail got through, including an answer that says setting `None` makes a parameter *required* (the docs say the opposite). "The judge agrees with a human X% of the time" means nothing until the human labels have been checked too.
+
+**14. Showing reviewers the AI's answer anchors them (automation bias).**
+With the judge's grade and reasoning on screen, 46 of 48 disputes were settled its way, and 3 of the 4 rubric violations found afterwards copied the judge exactly, even though the judge's prompt predates the rubric. Agreement jumped from 57–72% to 89–100%, but much of that jump is the judge grading itself. *Next time:* show the two grades as "Grade A / Grade B" without saying which came from the judge, require a reason before moving on, and review a sample of agreed cases too.
+
+**15. Separate criteria get collapsed into one gut call.**
+On the first pass, 44 of 47 answers got the same grade on all three criteria, so it was really one "is this answer good?" call. Independent criteria take a written rubric and worked examples (a correct answer with the wrong citation is pass / pass / **fail**). After the rubric, 21 of 47 did.
+
+**16. Write the rubric before labeling, not after.**
+The first pass was graded against one-line definitions, and the rules for edge cases ("not covered" answers, extra citations, incomplete answers) were only settled afterwards. Some of the disagreement was about grading different rules, not grading carelessly. The labels also carry almost no reasons (1 of 47), which makes each disagreement hard to settle.
 
 ### Working with model output
 
-**13. Models don't reliably follow format instructions, so parse defensively.**
+**17. Models don't reliably follow format instructions, so parse defensively.**
 - The sprint-risk agent was told "only JSON, no prose" and still wrapped its answer in a ```` ```json ```` fence or added a preamble. That crashed 3 of the first 4 live runs.
 - The RAG assistant was told to end with a "Sources:" line and sometimes wrote a sentence there ("None of the provided excerpts contain…"), which the parser took for a filename.
 
 The fixes (extract the JSON array; only accept `*.md` names) are each covered by tests built from the real outputs. For new code, structured outputs (`messages.parse` with a pydantic model, used in `build_answer_set.py`) avoid the problem altogether.
 
-**14. Mocked tests can't catch model-behavior bugs.**
+**18. Mocked tests can't catch model-behavior bugs.**
 All 14 sprint-risk tests passed while the live agent crashed on its first real response, because the mocks returned the tidy JSON the code expected. Both bugs above were found only by running the real thing. Mocked tests keep CI fast and free; they still need a periodic live run.
 
 ### Setup and tooling
 
-**15. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
+**19. Claude Pro and the Claude API are billed separately.** Pro covers chatting with Claude; code calling the API needs its own prepaid credit from console.anthropic.com. This whole project costs a few dollars.
 
-**16. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
+**20. Windows path length limits bite quietly.** Git failed to clone into a deeply nested folder, and later couldn't read a commit-message file from one ("Filename too long"). Keeping projects at a short path (`C:\Users\dale_\code`) avoided both.
 
-**17. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
+**21. Secrets stay local.** The API key lives in a `.env` file that `.gitignore` excludes in every repo. Before each push, `git ls-files .env` confirmed it wasn't tracked.
 
 ---
 
-## Open questions for the Phase 2 rubric
+## Rubric decisions (settled 2026-09-25)
 
-1. An honest "not enough information" when the answer *was* in the docs (q04, q10, q17, q18): pass or fail **relevant**? Judge v1 couldn't decide consistently either (lesson 11).
-2. An answer that's accurate but incomplete (`q12-incomplete`, `q23-incomplete`): pass or fail **relevant**?
-3. An answer that declines but still names a doc on its Sources line (q30 cites first-steps.md "only shows development server usage"): is **cited correctly** a pass or n.a.?
+The open questions from Phase 1 are now rules in [`RUBRIC.md`](RUBRIC.md):
 
-## Human labels (Phase 2)
+1. An honest "not covered" answer is graded against the **excerpts**: it passes **relevant** when the excerpts really lack the answer (q04, q17, q18). The retrieval miss is tracked separately (lesson 1).
+2. Incomplete answers **fail relevant**.
+3. An answer that declines gets **n.a.** for citation, even if it names a doc (q30).
+4. Citations follow the **core source rule**: pass if the doc holding the main answer is cited.
 
-*To be filled in from `data/human_labels.jsonl`:* how often the seeded flaws were caught, which flaw types were hardest to spot, and where the labels disagree with `seeded_flaw`.
+## Next: Phase 4
+
+- Judge prompt **v2** encodes `RUBRIC.md`, starting with lesson 11 (inconsistent "not covered" grading) and the core source rule.
+- Score v2 on answers with judge-independent right answers: the 17 seeded flaws plus the 9 rubric cases.
+- Compare `claude-haiku-4-5` and `claude-sonnet-5` as the judge, run each 3 times for consistency, and test the length bias from lesson 4.
